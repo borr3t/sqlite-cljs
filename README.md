@@ -23,11 +23,27 @@ maps in and out.
 | 1 | research inventory (`docs/sqlite-api-inventory.org`): driver decision, DDL/DML grammar census, PRAGMAs, DSL syntax proposal, pitfalls, uncertainties | done |
 | 2 | `core` (the one interop namespace: `db`/`close!`, pragmas, versions, value binding, statement cache, error mapping) and `query` (`query-all!`/`query-one!`/`query-value!`/`execute!`/`execute-all!`/`exec!`/`transact!`) | done |
 | 3 | `ddl` (create-table/index/view/trigger, alter, drop, STRICT validation), `dsl` (select/insert/upsert/update/delete renderer, json_each IN lists, chunked bulk inserts) and `migrate` (`user_version` + `sqlite_master` introspection, idempotent apply with drift detection) | done |
-| 4 | *(folded into phase 3: `migrate!` shipped with the DDL)* | — |
-| 5 | live smoke against a file database (WAL, busy timeout, two connections), README quick start | planned (the phase-2 suite already covers WAL/readonly/busy on a temp file under `target/`) |
+| 4 | live smoke (`dev/sqlite_cljs/smoke.cljs`, `:smoke` build): a real file database in a temp dir + `:memory:` side by side, 11 PASS/FAIL sections 0–10, no network | done |
+| 5 | user manual (`docs/sqlite-cljs.org`) + README | done |
 
 `./run-tests.sh` — 88 tests / 560 assertions, no network; database tests use `:memory:` plus one
-temporary file under `target/`.
+temporary file under `target/`. `npx shadow-cljs compile smoke && node target/smoke.js` — the live
+smoke (11/11 sections, exit 0 only when every section passes).
+
+## Documentation
+
+- **User manual** — [`docs/sqlite-cljs.org`](docs/sqlite-cljs.org): install and quick start,
+  the db value and effective pragmas, the DDL DSL (STRICT default, constraints, indexes,
+  views/triggers, alters with version gates), the query DSL (render model, operator table,
+  joins, CTEs, upserts, `:raw`, big IN lists, chunking), `migrate!`, executing queries,
+  transactions, value binding, error handling, design decisions, tests and the live smoke,
+  and a full API index per namespace.
+- **API inventory** — [`docs/sqlite-api-inventory.org`](docs/sqlite-api-inventory.org): the
+  verified spec behind the library (driver choice, SQLite grammar census, PRAGMAs, DSL
+  design, pitfalls and uncertainties with house positions, the as-shipped API in section 9).
+  Manual references such as "inventory 7.5" point there.
+- Namespace and function docstrings in `src/sqlite_cljs/` are the API truth; the manual's
+  examples are rendered/run against them.
 
 ## Quick look
 
@@ -74,6 +90,7 @@ the string. The driver is synchronous, so the promises are already settled when 
 ## Development
 
 ```
-./run-tests.sh                                  # exec's node at the end — never chain it mid-command
-npx shadow-cljs watch dev && node target/dev.js # REPL runtime
+./run-tests.sh                                          # exec's node at the end — never chain it mid-command
+npx shadow-cljs compile smoke && node target/smoke.js   # live smoke: temp-dir file db + :memory:, 11 sections, no network
+npx shadow-cljs watch dev && node target/dev.js         # REPL runtime
 ```
