@@ -4,7 +4,7 @@
 ;; standalone shadow-cljs CLI via the :dependencies key below; deps.edn mirrors
 ;; the same dependencies for consumers using :local/root / git deps.
 ;; The only npm runtime dependency is the wrapped driver (better-sqlite3, inventory §1);
-;; it is required from exactly one namespace (sqlite-cljs.driver) at runtime.
+;; it is required from exactly one namespace (sqlite-cljs.core) at runtime.
 {:source-paths ["src" "test" "dev"]
  :dependencies [[funcool/promesa "12.0.1"]]
  :builds

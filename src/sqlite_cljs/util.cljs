@@ -2,7 +2,7 @@
   "Small shared helpers: keyword case translation (kebab keywords <-> snake
    SQL names), strict SQL identifier quoting, row conversion and error
    normalization. No I/O and no driver access: the only namespace that
-   touches the native driver is sqlite-cljs.driver (inventory §8)."
+   touches the native driver is sqlite-cljs.core (inventory §9.1)."
   (:require [clojure.string :as str]))
 
 ;; ---------------------------------------------------------------------------
@@ -197,3 +197,35 @@
   "True when `e` is a sqlite-error whose code starts with SQLITE_BUSY."
   [e]
   (boolean (some-> (sqlite-code e) (str/starts-with? "SQLITE_BUSY"))))
+
+;; ---------------------------------------------------------------------------
+;; SQLite version comparison (feature gates, inventory §8.1)
+;; ---------------------------------------------------------------------------
+
+(defn version-vec
+  "\"3.53.4\" -> [3 53 4]. Missing components are 0; non-numeric input
+   throws :sqlite-cljs/argument-error."
+  [s]
+  (let [parts (str/split (str s) #"\.")
+        nums (mapv #(js/parseInt % 10) parts)]
+    (when (or (empty? parts) (some js/isNaN nums))
+      (throw (argument-error (str "not a version string: " (pr-str s)) {:value s})))
+    (into nums (repeat (- 3 (count nums)) 0))))
+
+(defn version>=
+  "True when SQLite version string `have` is at least version string `need`
+   (\"3.53.4\" >= \"3.35.0\"). A nil `have` means \"unknown\" and counts as
+   satisfied: callers gate only when they know the connection's version."
+  [have need]
+  (or (nil? have)
+      (>= (compare (version-vec have) (version-vec need)) 0)))
+
+(defn sql-string-literal
+  "Renders a string as a single-quoted SQL literal with ' doubled (DDL
+   literal mode only, inventory §6.3.9). Values in queries are NEVER
+   rendered this way: they are bound parameters. NUL characters are
+   rejected (SQLite string functions stop at a NUL)."
+  [s]
+  (when (str/includes? s "\u0000")
+    (throw (argument-error "string literal contains a NUL character" {:value s})))
+  (str "'" (str/replace s "'" "''") "'"))
