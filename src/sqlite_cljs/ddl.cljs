@@ -1,6 +1,6 @@
 (ns sqlite-cljs.ddl
   "Pure DDL renderer: table/index/view/trigger/alter/drop definition maps ->
-   {:statements [\"CREATE TABLE ...\" ...]} (inventory §3, §6.3.1-6.3.3).
+   {:statements [\"CREATE TABLE ...\" ...]}.
    DDL never carries parameters (SQLite forbids them in CHECK/DEFAULT/view/
    partial-index expressions), so expressions are rendered by
    sqlite-cljs.dsl in literal mode; user data never reaches DDL.
@@ -9,7 +9,7 @@
 
      {:create-table :users
       :if-not-exists? true            ; default true
-      :strict? true                   ; default true (inventory §7.1)
+      :strict? true                   ; default true
       :without-rowid? false
       :temp? false
       :columns [[:id :integer {:primary-key? true}]
@@ -37,16 +37,16 @@
    [:raw ..] | expression), :collate (:binary :nocase :rtrim | string),
    :references {:table :column :on-delete :on-update :deferrable},
    :generated-as {:expr :stored?}, :on-conflict (conflict clause for
-   PK/NOT NULL/UNIQUE), :name (CONSTRAINT name). The bare spellings used
-   in inventory §6.3.1 (:primary-key, :not-null, :unique, :autoincrement,
-   :references [t c] with :on-delete/:on-update beside it, :generated +
-   :stored) are accepted as aliases.
+   PK/NOT NULL/UNIQUE), :name (CONSTRAINT name). The bare spellings
+   (:primary-key, :not-null, :unique, :autoincrement, :references [t c]
+   with :on-delete/:on-update beside it, :generated + :stored) are accepted
+   as aliases.
 
    Types: :integer :int :real :text :blob :any, plus :numeric and
    [:raw \"VARCHAR(255)\"] only with :strict? false. :boolean/:datetime and
    any other name are rejected (:sqlite-cljs/argument-error naming the
-   column): booleans are INTEGER 0/1, dates INTEGER epoch milliseconds
-   (inventory §7.1, §7.4). STRICT rule violations are argument-errors too.
+   column): booleans are INTEGER 0/1, dates INTEGER epoch milliseconds.
+   STRICT rule violations are argument-errors too.
 
    Other definitions: {:create-index name :on/:table :columns [..] :unique?
    :where/:partial-where :if-not-exists?}, {:create-view name :columns :as
@@ -70,7 +70,7 @@
 ;; ---------------------------------------------------------------------------
 
 (def strict-types
-  "Types allowed in STRICT tables (inventory §3.3)."
+  "Types allowed in STRICT tables."
   #{:integer :int :real :text :blob :any})
 
 (def all-types
@@ -452,9 +452,8 @@
 
 (defn create-trigger-sql
   "Renders {:create-trigger name :on table :timing :after :event :insert
-   :when expr :body [\"UPDATE ...\" ...]} (inventory §3.12; body statements
-   are raw strings by house position §8.7, DSL maps in literal mode are
-   accepted too)."
+   :when expr :body [\"UPDATE ...\" ...]} (body statements are raw
+   strings; DSL maps in literal mode are accepted too)."
   [d]
   (check-keys d create-trigger-keys "create-trigger")
   (let [{:keys [on timing event body temp?]} d

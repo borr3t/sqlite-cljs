@@ -1,8 +1,8 @@
 (ns sqlite-cljs.dsl
   "Pure query renderer: honeysql-inspired data -> {:sql \"...\" :params [...]}
-   in SQLite dialect (inventory §6.3). No I/O, no driver access.
+   in SQLite dialect. No I/O, no driver access.
 
-   Conventions (inventory §6.3):
+   Conventions:
    * maps are statements ({:select .. :from ..}, {:insert-into ..}, {:update ..},
      {:delete-from ..}, {:union [..]}); a map in an expression position is a
      subquery.
@@ -24,7 +24,7 @@
    (\"*\" cannot be an alias).
 
    Duplicate result column names in one select are a dsl-error (the driver
-   collapses them into one map key, inventory §8.15): add aliases.
+   collapses them into one map key): add aliases.
 
    Joins: {:joins [[:left-join [:orgs :o] [:= :o/id :u/org-id]] ...]} renders
    in the given order; the honeysql clause keys :join/:inner-join/:left-join/
@@ -40,7 +40,7 @@
    Render options: {:mode :params (default) | :literal, :in-json-threshold n,
    :sqlite-version \"3.53.4\", :max-params 32766}. Literal mode is for DDL
    expressions only (CHECK/DEFAULT/views/partial indexes cannot take
-   parameters) and inlines a restricted literal vocabulary (inventory §6.3.9)."
+   parameters) and inlines a restricted literal vocabulary."
   (:require [clojure.string :as str]
             [sqlite-cljs.util :as util]))
 
@@ -49,7 +49,7 @@
   500)
 
 (def default-max-params
-  "SQLITE_MAX_VARIABLE_NUMBER of the bundled SQLite (inventory §5.9)."
+  "SQLITE_MAX_VARIABLE_NUMBER of the bundled SQLite."
   32766)
 
 (def default-opts
@@ -59,7 +59,7 @@
    :sqlite-version nil})
 
 (def type-names
-  "Column / CAST type vocabulary (inventory §3.2): keyword -> SQL type."
+  "Column / CAST type vocabulary: keyword -> SQL type."
   {:integer "INTEGER" :int "INT" :real "REAL" :text "TEXT" :blob "BLOB"
    :any "ANY" :numeric "NUMERIC"})
 
@@ -101,7 +101,7 @@
   (or (nil? v) (boolean? v) (number? v) (string? v) (bigint? v) (blob? v)))
 
 (defn- literal-sql
-  "Literal mode value (inventory §6.3.9)."
+  "Literal mode value."
   [v form]
   (cond
     (nil? v) "NULL"
@@ -111,7 +111,7 @@
     (cond
       (or (js/isNaN v) (not (js/isFinite v)))
       (throw (util/dsl-error "NaN/Infinity cannot be a literal" form))
-      (and (js/Number.isInteger v) (> (js/Math.abs v) 9007199254740991))
+      (and (js/Number.isInteger v) (> (js/Math.abs v) js/Number.MAX_SAFE_INTEGER))
       (throw (util/dsl-error "integer literal beyond 2^53-1" form))
       :else (str v))
     (string? v) (util/sql-string-literal v)
@@ -494,7 +494,7 @@
 
 (defn- from-clause
   ":from :t | [:t :alias] | [{sub} :alias] | {sub} | [item item ...]
-   (inventory §6.3.4: a two-element [table alias] vector whose first element
+   (a two-element [table alias] vector whose first element
    is a table name or subquery is ONE aliased table; anything else is a
    list of items, e.g. [[:users :u] [:orgs :o]] or [[[:json-each x] :j]])."
   [from ctx form]
@@ -902,7 +902,7 @@
 
 (defn render-literal
   "Expression rendered in DDL literal mode -> SQL string (no parameters
-   possible: values are inlined per inventory §6.3.9)."
+   possible: values are inlined)."
   [e]
   (:sql (render-expr e {:mode :literal})))
 

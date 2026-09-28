@@ -2,7 +2,7 @@
   "Execute layer: runs DSL maps, {:sql :params} maps, [sql & params] vectors
    or plain SQL strings against a db value from sqlite-cljs.core and returns
    promesa promises. The driver is synchronous, so every promise is already
-   settled on return (inventory §1.5); the promise API is kept so that an
+   settled on return; the promise API is kept so that an
    asynchronous driver can be swapped in later without touching call sites.
 
    Inside a transact! body (which must be synchronous) deref the settled
@@ -15,7 +15,7 @@
    :safe-integers? bool}.
 
    Statement cache: prepared statements are cached per connection in a
-   128-entry LRU keyed on the SQL text (inventory §8.12); exec! and
+   128-entry LRU keyed on the SQL text; exec! and
    migrate! clear it."
   (:require [promesa.core :as p]
             [sqlite-cljs.core :as core]
@@ -148,7 +148,7 @@
 
 (defn transact!
   "Runs (f tx) inside a transaction: (transact! d f) uses BEGIN IMMEDIATE
-   (house default, inventory §7.6); (transact! d :deferred f) /
+   (the default mode); (transact! d :deferred f) /
    :exclusive select the mode. `tx` is the same db value. The body runs
    synchronously; deref the settled promises inside it
    (@(execute! tx q)) and return a plain value, which becomes the resolved

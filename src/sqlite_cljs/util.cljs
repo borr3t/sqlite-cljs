@@ -2,11 +2,11 @@
   "Small shared helpers: keyword case translation (kebab keywords <-> snake
    SQL names), strict SQL identifier quoting, row conversion and error
    normalization. No I/O and no driver access: the only namespace that
-   touches the native driver is sqlite-cljs.core (inventory §9.1)."
+   touches the native driver is sqlite-cljs.core."
   (:require [clojure.string :as str]))
 
 ;; ---------------------------------------------------------------------------
-;; kebab-case <-> snake_case (inventory §5.7: kebab keywords in, snake names out)
+;; kebab-case <-> snake_case (kebab keywords in, snake names out)
 ;; ---------------------------------------------------------------------------
 
 (defn kebab->snake
@@ -45,7 +45,7 @@
      :else x)))
 
 ;; ---------------------------------------------------------------------------
-;; SQL identifiers (inventory §5.8). HARD RULE: identifiers are always quoted
+;; SQL identifiers. HARD RULE: identifiers are always quoted
 ;; with double quotes and embedded double quotes are doubled; values NEVER go
 ;; through this path (they are bound parameters).
 ;; ---------------------------------------------------------------------------
@@ -104,7 +104,7 @@
   "A driver row object -> map with kebab keyword keys. Uses Object.keys so it
    also works for null-prototype objects (which js->clj leaves untouched).
    Values are not converted: numbers, strings, nil, BigInt and Buffers pass
-   through as the driver returned them (inventory §5.6)."
+   through as the driver returned them."
   [o]
   (when (some? o)
     (persistent!
@@ -162,8 +162,8 @@
            (merge {:type :sqlite-cljs/config-error} data)))
 
 (defn migration-error
-  "ex-info for a migration that cannot be applied (version gap, checksum
-   mismatch, failed step)."
+  "ex-info for a migration that cannot be applied (drift, a database newer
+   than the definitions, a statement SQLite refuses)."
   [message & [data]]
   (ex-info (str "sqlite-cljs migration: " message)
            (merge {:type :sqlite-cljs/migration-error} data)))
@@ -199,7 +199,7 @@
   (boolean (some-> (sqlite-code e) (str/starts-with? "SQLITE_BUSY"))))
 
 ;; ---------------------------------------------------------------------------
-;; SQLite version comparison (feature gates, inventory §8.1)
+;; SQLite version comparison (feature gates)
 ;; ---------------------------------------------------------------------------
 
 (defn version-vec
@@ -222,7 +222,7 @@
 
 (defn sql-string-literal
   "Renders a string as a single-quoted SQL literal with ' doubled (DDL
-   literal mode only, inventory §6.3.9). Values in queries are NEVER
+   literal mode only). Values in queries are NEVER
    rendered this way: they are bound parameters. NUL characters are
    rejected (SQLite string functions stop at a NUL)."
   [s]

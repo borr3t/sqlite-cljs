@@ -50,7 +50,7 @@
    Returns a promise of the report
    {:created [names] :existing [names] :altered [names] :dropped [names]
     :user-version n :previous-user-version n :sqlite-version \"..\"}.
-   The statement cache is cleared afterwards (inventory §7.17)."
+   The statement cache is cleared afterwards."
   (:require [clojure.string :as str]
             [promesa.core :as p]
             [sqlite-cljs.core :as core]

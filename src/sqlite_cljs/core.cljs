@@ -1,6 +1,6 @@
 (ns sqlite-cljs.core
   "The ONE driver-binding namespace: every line of better-sqlite3 interop in
-   the library lives here (inventory §1.4, §9.1). Nothing else in
+   the library lives here. Nothing else in
    sqlite-cljs (and nothing at call sites) touches a driver object.
 
    A *db value* is a plain map returned by `db`:
@@ -13,10 +13,10 @@
                   :busy-timeout-ms .. :trusted-schema? .. :safe-integers? ..}
       :cache     <statement cache, an LRU keyed by SQL text>}
 
-   The db value IS the connection: one per process/database (inventory §7.6).
+   The db value IS the connection: one per process/database.
    Pass it to every function in sqlite-cljs.query / migrate.
 
-   Async policy (inventory §1.5): better-sqlite3 is synchronous, so every
+   Async policy: better-sqlite3 is synchronous, so every
    promise returned here is *already settled* when you receive it. The
    promise API is kept so that a future asynchronous driver binding can be
    swapped in without changing call sites. Inside a `sqlite-cljs.query/transact!`
@@ -24,7 +24,7 @@
    to get the value synchronously; a rejected promise throws on deref,
    which is what makes the transaction wrapper roll back.
 
-   Value binding (inventory §5.7, §7.5): nil -> NULL; booleans -> INTEGER
+   Value binding: nil -> NULL; booleans -> INTEGER
    1/0; integral numbers within ±2^53-1 -> INTEGER (converted to BigInt
    internally, because the driver would otherwise bind every JS number as
    REAL and store '5.0' in TEXT columns); other finite numbers -> REAL;
@@ -60,20 +60,20 @@
   (delay (unchecked-get (js/require (str driver-name "/package.json")) "version")))
 
 (def default-cache-size
-  "Default number of prepared statements kept per connection (inventory §8.12)."
+  "Default number of prepared statements kept per connection."
   128)
 
 (def max-params
-  "SQLITE_MAX_VARIABLE_NUMBER of the bundled SQLite (inventory §5.9): the
+  "SQLITE_MAX_VARIABLE_NUMBER of the bundled SQLite: the
    maximum number of bound parameters in one statement."
   32766)
 
 (def max-safe-integer
   "2^53-1: the largest integral JS number that is bound exactly."
-  9007199254740991)
+  js/Number.MAX_SAFE_INTEGER)
 
 ;; ---------------------------------------------------------------------------
-;; Error mapping (inventory §2.4)
+;; Error mapping
 ;; ---------------------------------------------------------------------------
 
 (defn- sqlite-error? [e]
@@ -106,7 +106,7 @@
     :else e))
 
 ;; ---------------------------------------------------------------------------
-;; Values -> driver values (inventory §5.7)
+;; Values -> driver values
 ;; ---------------------------------------------------------------------------
 
 (defn- bigint? [v] (= "bigint" (js* "typeof ~{}" v)))
@@ -214,7 +214,7 @@
    :boolean (INTEGER 0/1 -> false/true), :date (epoch-ms INTEGER -> js/Date),
    :number (BigInt -> number), :bigint, :json (TEXT -> data, keywordized),
    :keyword, or any 1-arg fn. NULL (nil) is never coerced. Opt-in per
-   query (inventory §8.4): rows are otherwise returned raw."
+   query: rows are otherwise returned raw."
   [coerce row]
   (if (empty? coerce)
     row
@@ -240,7 +240,7 @@
 
 (defn clear-cache!
   "Drops every cached prepared statement of the connection (called by
-   migrate! and exec! after schema changes, inventory §7.17). Synchronous."
+   migrate! and exec! after schema changes). Synchronous."
   [d]
   (.clear (:cache d))
   nil)
@@ -341,9 +341,8 @@
                         if SQLite could not switch (WAL on a network share)
      :synchronous       :off :normal :full :extra (or 0-3); when omitted the
                         driver default stays (NORMAL for a WAL database
-                        opened by a fresh connection, FULL otherwise —
-                        inventory §7.10/§8.16); the effective value is
-                        reported in :effective
+                        opened by a fresh connection, FULL otherwise);
+                        the effective value is reported in :effective
      :trusted-schema?   PRAGMA trusted_schema (default false per sqlite.org)
      :cache-size        statement cache entries (default 128)
 
